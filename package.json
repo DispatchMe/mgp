@@ -1,0 +1,15 @@
+{
+  "name": "dispatch",
+  "description": "Dispatch development and build tools",
+  "version": "0.0.1",
+  "dependencies": {
+    "fs-extra": "^0.18.0",
+    "lodash": "^3.6.0",
+    "nodegit": "0.3.3"
+  },
+  "devDependencies": {},
+  "bin": "./prepare.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  }
+}
