@@ -4,7 +4,7 @@ var fs = require('fs-extra');
 
 var PACKAGES = {
   "jon:bank-account": {
-    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/b8fdb40c99dc5057ee4a869cc4b4ad481d58a231",
+    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/327746c6eb3aface483c9879472cb43c27808185",
     "path": "bank-account"
   },
   "jon:secrets": {
@@ -29,9 +29,10 @@ describe('Package Loading', function () {
   it('should copy each package into the packageDir', function (done) {
     this.timeout(30000);
 
-    Packages.copy(PACKAGES, function () {
+    Packages.load(PACKAGES, function () {
       expectFiles('test/packages', [
         'jon:bank-account/README.md',
+        'jon:bank-account/folder/INSIDE.md',
         'jon:secrets/README.md'
       ]);
 

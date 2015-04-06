@@ -36,21 +36,9 @@ Packages.fromFile = function (file, callback) {
   });
 };
 
-/**
- * Download and copy the packages from teh tarballs
- * @param packages The package definitions which have
- *                 the repos and tags to checkout.
- *
- * @param done
- */
-Packages.copy = function (packages, done) {
-  fs.ensureDirSync(PACKAGE_DIR);
-
-  // Create a temp directory to store the tarballs
-  var tempDir = PACKAGE_DIR + '/temp';
-  fs.ensureDirSync(tempDir);
-
-  // { url: { destPath: srcPath } }
+// Create a packages document per tarball url.
+// { tarUrl: { packageName: tarPath, .. }, ... }
+var getTarballDict = function (packages) {
   var tarballs = {};
 
   _.forOwn(packages, function (definition, packageName) {
@@ -59,50 +47,71 @@ Packages.copy = function (packages, done) {
 
     var tarball = tarballs[url] = tarballs[url] || {};
 
-    // destPath = srcPath
+    // package name -> source path inside tarball
     tarball[packageName] = definition.path || '';
   });
 
-  var headers = {'User-Agent': 'meteor-git-packages tool'};
-  if (packages.token) headers.Authorization = 'token ' + packages.token;
+  return tarballs;
+};
+
+// Copy the packages from the tarball directory to the package path
+var copyPackages = function (packages, tarballDir, done) {
+  var packageCopied = _.after(_.keys(packages.length), done);
+
+  _.forOwn(packages, function (src, packageName) {
+    src = tarballDir + '/' + src;
+
+    var dest = PACKAGE_DIR + '/' + packageName;
+    fs.removeSync(dest);
+
+    fs.copy(src, dest, function (error) {
+      // Fail explicitly.
+      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+
+      packageCopied();
+    });
+  });
+};
+
+/**
+ * Download the tarballs and copy the packages.
+ * @param packages The packages to load.
+ * @param done
+ */
+Packages.load = function (packages, done) {
+  fs.ensureDirSync(PACKAGE_DIR);
+
+  // Create a temp directory to store the tarballs
+  var tempDir = PACKAGE_DIR + '/temp';
+  fs.ensureDirSync(tempDir);
+
+  var tarballs = getTarballDict(packages);
 
   // Remove the temp directory after the packages are copied.
-  var packagesCopied = _.after(_.keys(tarballs).length, function () {
+  var tarballCopied = _.after(_.keys(tarballs).length, function () {
     fs.removeSync(tempDir);
     done();
   });
 
-  var copyPackages = function (tarDir, packagePaths) {
-    var packageCopied = _.after(_.keys(packagePaths.length), packagesCopied);
-    _.forOwn(packagePaths, function (srcPath, name) {
-      var destPath = PACKAGE_DIR + '/' + name;
-      fs.removeSync(destPath);
-      srcPath = tarDir + '/' + srcPath;
-
-      fs.copy(srcPath, destPath, function (error) {
-        // Fail explicitly.
-        if (error) throw 'Could not copy ' + srcPath + ' to ' + destPath;
-
-        packageCopied();
-      });
-    });
-  };
+  // Load the tarballs from github.
+  var headers = {'User-Agent': 'meteor-git-packages tool'};
+  if (packages.token) headers.Authorization = 'token ' + packages.token;
 
   var index = 0;
-  _.forOwn(tarballs, function (packagePaths, tarballUrl) {
-    var tarDir = tempDir + '/' + index++;
+  _.forOwn(tarballs, function (packagesFortar, tarUrl) {
+    var tarballDir = tempDir + '/' + index++;
 
     request.get({
-      uri: tarballUrl,
+      uri: tarUrl,
       headers: headers
     })
       .on('error', function (error) {
         throw error;
       })
       .pipe(zlib.Gunzip())
-      .pipe(tar.Extract({path: tarDir, strip: 1}))
+      .pipe(tar.Extract({path: tarballDir, strip: 1}))
       .on('end', function () {
-        copyPackages(tarDir, packagePaths);
+        copyPackages(packagesFortar, tarballDir, tarballCopied);
       });
   });
 };
