@@ -77,7 +77,14 @@ Packages.copy = function (packages, done) {
     _.forOwn(packagePaths, function (srcPath, name) {
       var destPath = PACKAGE_DIR + '/' + name;
       fs.removeSync(destPath);
-      fs.copy(tarDir + '/' + srcPath, destPath, packageCopied);
+      srcPath = tarDir + '/' + srcPath;
+
+      fs.copy(srcPath, destPath, function (error) {
+        // Fail explicitly.
+        if (error) throw 'Could not copy ' + srcPath + ' to ' + destPath;
+
+        packageCopied();
+      });
     });
   };
 
