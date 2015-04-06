@@ -1,13 +1,16 @@
 {
-  "name": "dispatch",
-  "description": "Dispatch development and build tools",
+  "name": "mgp",
+  "description": "Meteor git packages",
   "version": "0.0.1",
   "dependencies": {
     "fs-extra": "^0.18.0",
     "lodash": "^3.6.0",
-    "nodegit": "0.3.3"
+    "request": "^2.55.0",
+    "tar": "^2.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^2.2.1"
+  },
   "bin": "./prepare.js",
   "scripts": {
     "test": "node_modules/.bin/mocha"

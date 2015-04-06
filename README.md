@@ -1,14 +1,27 @@
-# Dispatch Dev Tools
+# Meteor Git Packages
 
-A collection of helpful development tools. If meteor [refactors](https://meteor.hackpad.com/Proposal-queues-based-build-tool-kbqhWoYYfKR)
- their build tool we can hopefully plug these into it.
+This tools helps you share private meteor packages.
 
-## Setup your environment
+## Getting Started
 
-`npm install git@github.com:DispatchMe/dev-tools.git`
+- `npm install -g mgp`
 
-## Run the tools
+- Add `git-packages.json` to the root of your project and [generate](https://github.com/settings/applications#personal-access-tokens) a token for private tarball access.
 
-`dispatch`
+````
+{
+  "your:private-package": {
+    "tarball": "https://api.github.com/repos/your/private-packages/tarball/commithash",
+    "path": "optional/directory/path"
+  },
+  "your:other-private-package": {
+    "tarball": "https://api.github.com/repos/your/private-packages/tarball/commithash"
+  },
+  "token": "GITHUB_ACCESS_TOKEN"
+}
+````
 
-This will load private packages defined in `.meteor/git-packages.json` into `.packages` and symlink them into `/packages`.
+- Run `mgp` in your meteor directory
+
+When meteor [refactors](https://meteor.hackpad.com/Proposal-queues-based-build-tool-kbqhWoYYfKR)
+ their build tool we can plug this into it.

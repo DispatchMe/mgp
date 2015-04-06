@@ -1,0 +1,10 @@
+{
+  "your:private-package": {
+    "tarball": "https://api.github.com/your/private-packages/tarball/commithash",
+    "path": "optional/directory/path"
+  },
+  "your:other-private-package": {
+    "tarball": "https://api.github.com/your/private-packages/tarball/commithash"
+  },
+  "token": "GITHUB_ACCESS_TOKEN"
+}

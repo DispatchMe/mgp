@@ -3,35 +3,24 @@ var Packages = module.exports = {};
 var _ = require('lodash'),
   fs = require('fs-extra'),
   path = require('path'),
-  nodegit = require('nodegit');
+  request = require('request'),
+  tar = require('tar'),
+  zlib = require('zlib');
 
 var PACKAGE_DIR = process.cwd() + '/packages';
-var REPO_DIR = process.cwd() + '/.packages';
 
 /**
- * Configure the repo and package directories.
- * @param [options.packageDir] The directory to symlink the packages to.
+ * Configure the package directory.
+ * @param packageDir The directory to copy the packages to.
  *                             Defaults to cwd/packages
- * @param [options.repoDir]    The directory to clone the repos to.
- *                             Defaults to cwd/.packages
  */
-Packages.config = function (options) {
-  if (options.packageDir) PACKAGE_DIR = path.resolve(options.packageDir);
-  if (options.repoDir) REPO_DIR = path.resolve(options.repoDir);
+Packages.config = function (packageDir) {
+  PACKAGE_DIR = path.resolve(packageDir);
 };
 
 /**
  * Load the packages file.
- * Ex.
- * {
- *   'dispatch:roles': {
- *     'repo': 'https://github.com/DispatchMe/meteor-packages.git',
- *     'tag': '29649f115b22222d094dc58a2c65ca094c1c4a9a',
- *     'root': 'roles'
- *   }
- * }
- *
- * @param [file] Defaults to cwd/.meteor/git-packages.json
+ * @param [file] Defaults to cwd/git-packages.json
  * @param callback
  */
 Packages.fromFile = function (file, callback) {
@@ -40,7 +29,7 @@ Packages.fromFile = function (file, callback) {
     file = null;
   }
 
-  var packagesFile = file || process.cwd() + '/.meteor/git-packages.json';
+  var packagesFile = file || process.cwd() + '/git-packages.json';
   fs.readJson(packagesFile, function (err, packages) {
     if (err) throw err;
 
@@ -50,71 +39,65 @@ Packages.fromFile = function (file, callback) {
 };
 
 /**
- * Checkout each unique set of repos / tags into dir/owner/name/tag
+ * Download and copy the packages from teh tarballs
  * @param packages The package definitions which have
  *                 the repos and tags to checkout.
  *
- * @param callback
+ * @param done
  */
-Packages.checkout = function (packages, callback) {
-  // Remove the packages directory
-  // XXX Keep the directory and only fetch the new repos
-  fs.removeSync(REPO_DIR);
-  fs.ensureDirSync(REPO_DIR);
-
-  // Load the unique repo / tags
-  var packageDefs = _.uniq(_.values(packages), false, function (repo) {
-    return repo.repo + repo.tag;
-  });
-
-  callback = _.after(packageDefs.length, callback);
-
-  packageDefs.forEach(function (packageDef) {
-    var repoDir = REPO_DIR + '/' + packageDef.tag;
-
-    nodegit.Clone(packageDef.repo, repoDir,
-      {
-        remoteCallbacks: {
-          certificateCheck: function () {
-            // github will fail cert check on some OSX machines
-            // this overrides that check
-            return 1;
-          },
-          credentials: function (url, userName) {
-            return nodegit.Cred.sshKeyNew(
-              userName,
-              process.env.HOME + '/.ssh/id_rsa.pub',
-              process.env.HOME + '/.ssh/id_rsa',
-              '');
-          }
-        }
-      })
-      .then(function (repo) {
-        // Checkout the commit
-        return repo.setHeadDetached(packageDef.tag,
-          nodegit.Signature.default(repo), packageDef.tag);
-      })
-      .done(callback);
-  });
-};
-
-/**
- * Symlink the .packages/ into packages/
- * @param packages The package definitions to symlink
- * @param callback
- */
-Packages.link = function (packages, callback) {
+Packages.copy = function (packages, done) {
   fs.ensureDirSync(PACKAGE_DIR);
 
-  callback = _.after(_.values(packages).length, callback);
+  // Create a temp directory to store the tarballs
+  var tempDir = PACKAGE_DIR + '/temp';
+  fs.ensureDirSync(tempDir);
 
-  _.forOwn(packages, function (packageDef, name) {
-    var srcPath = REPO_DIR + '/' + packageDef.tag;
-    if (packageDef.path) srcPath += '/' + packageDef.path;
+  // { url: { destPath: srcPath } }
+  var tarballs = {};
 
-    var destPath = PACKAGE_DIR + '/' + name;
-    fs.removeSync(destPath);
+  _.forOwn(packages, function (definition, packageName) {
+    var url = definition.tarball;
+    if (!url) return;
 
-    fs.symlink(srcPath, destPath, callback);
+    var tarball = tarballs[url] = tarballs[url] || {};
+
+    // destPath = srcPath
+    tarball[packageName] = definition.path || '';
+  });
+
+  var headers = {'User-Agent': 'meteor-git-packages tool'};
+  if (packages.token) headers.Authorization = 'token ' + packages.token;
+
+  // Remove the temp directory after the packages are copied.
+  var packagesCopied = _.after(_.keys(tarballs).length, function () {
+    fs.removeSync(tempDir);
+    done();
+  });
+
+  var copyPackages = function (tarDir, packagePaths) {
+    var packageCopied = _.after(_.keys(packagePaths.length), packagesCopied);
+    _.forOwn(packagePaths, function (srcPath, name) {
+      var destPath = PACKAGE_DIR + '/' + name;
+      fs.removeSync(destPath);
+      fs.copy(tarDir + '/' + srcPath, destPath, packageCopied);
+    });
+  };
+
+  var index = 0;
+  _.forOwn(tarballs, function (packagePaths, tarballUrl) {
+    var tarDir = tempDir + '/' + index++;
+
+    request.get({
+      uri: tarballUrl,
+      headers: headers
+    })
+      .on('error', function (error) {
+        throw error;
+      })
+      .pipe(zlib.Gunzip())
+      .pipe(tar.Extract({path: tarDir, strip: 1}))
+      .on('end', function () {
+        copyPackages(tarDir, packagePaths);
+      });
   });
 };
