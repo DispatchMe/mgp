@@ -1,7 +1,24 @@
 {
   "name": "mgp",
   "description": "Meteor git packages",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "bin": "./prepare.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DispatchMe/mgp"
+  },
+  "bugs": {
+    "url": "https://github.com/DispatchMe/mgp/issues"
+  },
+  "keywords": [
+    "meteor",
+    "git",
+    "private",
+    "packages"
+  ],
   "dependencies": {
     "fs-extra": "^0.18.0",
     "lodash": "^3.6.0",
@@ -11,8 +28,5 @@
   "devDependencies": {
     "mocha": "^2.2.1"
   },
-  "bin": "./prepare.js",
-  "scripts": {
-    "test": "node_modules/.bin/mocha"
-  }
+  "license": "MIT"
 }
