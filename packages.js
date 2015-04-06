@@ -31,10 +31,8 @@ Packages.fromFile = function (file, callback) {
 
   var packagesFile = file || process.cwd() + '/git-packages.json';
   fs.readJson(packagesFile, function (err, packages) {
-    if (err) throw err;
-
     // XXX check the packages schema
-    if (callback) callback(packages);
+    if (callback) callback(err, packages);
   });
 };
 
