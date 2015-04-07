@@ -11,7 +11,14 @@ var PACKAGES = {
     "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/c2792ca2970c6d88e5e2fb6b8a26e26b81d220f9",
     "path": "secrets"
   },
-  // From our encrypted variables, someone was messing with the hardcoded one :(
+  // Test multiple packages per tarball we ran into
+  // an issue before where that did not work.
+  "jon:bank-account2": {
+    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/c2792ca2970c6d88e5e2fb6b8a26e26b81d220f9",
+    "path": "bank-account"
+  },
+  // From an encrypted variable. We had remove the
+  // hardcoded one because someone was messing with it :(
   "token": process.env.GITHUB_TOKEN
 };
 

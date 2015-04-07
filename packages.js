@@ -56,7 +56,7 @@ var getTarballDict = function (packages) {
 
 // Copy the packages from the tarball directory to the package path
 var copyPackages = function (packages, tarballDir, done) {
-  var packageCopied = _.after(_.keys(packages.length), done);
+  var packageCopied = _.after(_.keys(packages).length, done);
 
   _.forOwn(packages, function (src, packageName) {
     src = tarballDir + '/' + src;
@@ -98,7 +98,7 @@ Packages.load = function (packages, done) {
   if (packages.token) headers.Authorization = 'token ' + packages.token;
 
   var index = 0;
-  _.forOwn(tarballs, function (packagesFortar, tarUrl) {
+  _.forOwn(tarballs, function (packagesForTar, tarUrl) {
     var tarballDir = tempDir + '/' + index++;
 
     request.get({
@@ -111,7 +111,7 @@ Packages.load = function (packages, done) {
       .pipe(zlib.Gunzip())
       .pipe(tar.Extract({path: tarballDir, strip: 1}))
       .on('end', function () {
-        copyPackages(packagesFortar, tarballDir, tarballCopied);
+        copyPackages(packagesForTar, tarballDir, tarballCopied);
       });
   });
 };
