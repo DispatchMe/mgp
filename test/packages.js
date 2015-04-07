@@ -82,7 +82,7 @@ var PACKAGES_TO_LINK = {
 describe('Meteor Git Packages -- mgp link', function () {
   Packages.config(PACKAGE_DIR);
 
-  it('should link each package into the package directory', function (done) {
+  it('should symlink each package into the package directory', function (done) {
     this.timeout(30000);
 
     Packages.link(PACKAGES_TO_LINK, checkFiles(done));

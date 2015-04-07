@@ -118,7 +118,6 @@ Packages.link = function (packages, callback) {
 
     var src = resolvePath(def.path);
 
-    console.log('src', src, 'dest', dest);
     fs.symlink(src, dest, function (error) {
       // Fail explicitly.
       if (error) throw 'Could not copy ' + src + ' to ' + dest;
