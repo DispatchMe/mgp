@@ -4,9 +4,9 @@ var _ = require('lodash'),
   argv = require('minimist')(process.argv.slice(2)),
   Packages = require('./packages');
 
-var link = !!argv._.contains('link');
+var link = _.contains(argv._, 'link');
 
-var packageFile = process.cwd() + '/packages/' +
+var packageFile = process.cwd() + '/' +
   (link ? 'local-packages.json' : 'git-packages.json');
 
 Packages.fromFile(packageFile, function (error, packages) {
