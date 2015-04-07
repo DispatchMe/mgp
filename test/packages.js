@@ -1,6 +1,7 @@
 var Packages = require('../packages');
 
-var fs = require('fs-extra');
+var _ = require('lodash'),
+  fs = require('fs-extra');
 
 var PACKAGES = {
   "jon:bank-account": {
@@ -29,8 +30,10 @@ var expectFiles = function (dir, files) {
   });
 };
 
+var PACKAGE_DIR = 'test/packages';
+
 describe('Package Loading', function () {
-  Packages.config('test/packages');
+  Packages.config(PACKAGE_DIR);
 
   it('should copy each package into the packageDir', function (done) {
     this.timeout(30000);
@@ -41,6 +44,19 @@ describe('Package Loading', function () {
         'jon:bank-account/folder/INSIDE.md',
         'jon:secrets/README.md'
       ]);
+
+      done();
+    });
+  });
+
+  it('should create a .gitignore in the package directory', function (done) {
+    Packages.ensureGitIgnore(PACKAGES, function () {
+      var gitIgnore = fs.readFileSync(PACKAGE_DIR + '/.gitignore', 'utf8');
+
+      _.forOwn(PACKAGES, function (def, name) {
+        if (gitIgnore.indexOf(name) < 0 && name !== 'token')
+          throw name + ' was not in the .gitignore';
+      });
 
       done();
     });

@@ -74,11 +74,32 @@ var copyPackages = function (packages, tarballDir, done) {
 };
 
 /**
+ * Create a git ignore in the package directory for the packages.
+ * @param packages
+ * @param {Function} callback
+ */
+Packages.ensureGitIgnore = function (packages, callback) {
+  var filePath = PACKAGE_DIR + '/.gitignore';
+
+  fs.ensureFileSync(filePath);
+  fs.readFile(filePath, 'utf8', function (err, gitIgnore) {
+    // Append packages to the gitignore
+    _.forOwn(packages, function (def, name) {
+      if (name === 'token' || gitIgnore.indexOf(name) > -1) return;
+
+      gitIgnore += name + '\n';
+    });
+
+    fs.writeFile(filePath, gitIgnore, callback);
+  });
+};
+
+/**
  * Download the tarballs and copy the packages.
  * @param packages The packages to load.
- * @param done
+ * @param {Function} callback
  */
-Packages.load = function (packages, done) {
+Packages.load = function (packages, callback) {
   fs.ensureDirSync(PACKAGE_DIR);
 
   // Create a temp directory to store the tarballs
@@ -90,7 +111,7 @@ Packages.load = function (packages, done) {
   // Remove the temp directory after the packages are copied.
   var tarballCopied = _.after(_.keys(tarballs).length, function () {
     fs.removeSync(tempDir);
-    done();
+    callback();
   });
 
   // Load the tarballs from github.

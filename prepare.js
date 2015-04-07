@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
-var Packages = require('./packages');
+var _ = require('lodash'),
+  Packages = require('./packages');
 
 Packages.fromFile(function (error, packages) {
   // Fail gracefully.
   if (error) return console.log('Unable to load packages.json');
 
-  Packages.load(packages, function () {
-    process.exit(0)
+  var done = _.after(2, function () {
+    process.exit();
   });
+
+  Packages.ensureGitIgnore(packages, done);
+  Packages.load(packages, done);
 });
