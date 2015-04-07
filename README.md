@@ -10,18 +10,32 @@ This tools helps you share private meteor packages.
 
 ````
 {
-  "your:private-package": {
-    "tarball": "https://api.github.com/repos/your/private-packages/tarball/commithash",
+  "my:private-package": {
+    "tarball": "https://api.github.com/repos/my/private-packages/tarball/commithash",
     "path": "optional/directory/path"
   },
-  "your:other-private-package": {
-    "tarball": "https://api.github.com/repos/your/private-packages/tarball/commithash"
+  "my:other-private-package": {
+    "tarball": "https://api.github.com/repos/my/private-packages/tarball/commithash"
   },
   "token": "GITHUB_ACCESS_TOKEN"
 }
 ````
 
-- Run `mgp` in your meteor directory
+- Run `mgp` in your meteor directory to copy the packages from github.
 
-When meteor [refactors](https://meteor.hackpad.com/Proposal-queues-based-build-tool-kbqhWoYYfKR)
- their build tool we can plug this into it.
+or
+
+- Add `local-packages.json` to the root of your project:
+
+````
+{
+  "my:private-package": {
+    "path": "~/path/to/private-package"
+  },
+  "my:other-private-package": {
+    "path": "relative/path/to/other-private-package"
+  }
+}
+````
+
+- Run `mgp link` in your meteor directory to symlink your local packages.

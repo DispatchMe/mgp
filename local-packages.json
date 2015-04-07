@@ -1,0 +1,8 @@
+{
+  "my:private-package": {
+    "path": "~/path/to/private-package"
+  },
+  "my:other-private-package": {
+    "path": "relative/path/to/other-private-package"
+  }
+}

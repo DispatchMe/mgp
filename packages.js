@@ -9,13 +9,21 @@ var _ = require('lodash'),
 
 var PACKAGE_DIR = process.cwd() + '/packages';
 
+function resolvePath(string) {
+  if (string.substr(0, 1) === '~') {
+    var homedir = (process.platform.substr(0, 3) === 'win') ? process.env.HOMEPATH : process.env.HOME;
+    string = homedir + string.substr(1)
+  }
+  return path.resolve(string)
+}
+
 /**
  * Configure the package directory.
  * @param packageDir The directory to copy the packages to.
  *                             Defaults to cwd/packages
  */
 Packages.config = function (packageDir) {
-  PACKAGE_DIR = path.resolve(packageDir);
+  PACKAGE_DIR = resolvePath(packageDir);
 };
 
 /**
@@ -91,6 +99,32 @@ Packages.ensureGitIgnore = function (packages, callback) {
     });
 
     fs.writeFile(filePath, gitIgnore, callback);
+  });
+};
+
+/**
+ * Symlink local directories to the packages directory.
+ * @param packages The packages to symlink.
+ * @param {Function} callback
+ */
+Packages.link = function (packages, callback) {
+  fs.ensureDirSync(PACKAGE_DIR);
+
+  var dirLinked = _.after(_.keys(packages).length, callback);
+
+  _.forOwn(packages, function (def, packageName) {
+    var dest = PACKAGE_DIR + '/' + packageName;
+    fs.removeSync(dest);
+
+    var src = resolvePath(def.path);
+
+    console.log('src', src, 'dest', dest);
+    fs.symlink(src, dest, function (error) {
+      // Fail explicitly.
+      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+
+      dirLinked();
+    });
   });
 };
 

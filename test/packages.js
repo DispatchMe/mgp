@@ -3,7 +3,7 @@ var Packages = require('../packages');
 var _ = require('lodash'),
   fs = require('fs-extra');
 
-var PACKAGES = {
+var PACKAGES_TO_LOAD = {
   "jon:bank-account": {
     "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/327746c6eb3aface483c9879472cb43c27808185",
     "path": "bank-account"
@@ -30,35 +30,61 @@ var expectFiles = function (dir, files) {
   });
 };
 
+var checkFiles = function (done) {
+  return function () {
+    expectFiles('test/packages', [
+      'jon:bank-account/README.md',
+      'jon:bank-account/folder/INSIDE.md',
+      'jon:secrets/README.md'
+    ]);
+
+    done();
+  };
+};
+
 var PACKAGE_DIR = 'test/packages';
 
-describe('Package Loading', function () {
+describe('Meteor Git Packages -- mgp', function () {
   Packages.config(PACKAGE_DIR);
 
-  it('should copy each package into the packageDir', function (done) {
+  it('should copy each package into the package directory', function (done) {
     this.timeout(30000);
 
-    Packages.load(PACKAGES, function () {
-      expectFiles('test/packages', [
-        'jon:bank-account/README.md',
-        'jon:bank-account/folder/INSIDE.md',
-        'jon:secrets/README.md'
-      ]);
-
-      done();
-    });
+    Packages.load(PACKAGES_TO_LOAD, checkFiles(done));
   });
 
   it('should create a .gitignore in the package directory', function (done) {
-    Packages.ensureGitIgnore(PACKAGES, function () {
+    Packages.ensureGitIgnore(PACKAGES_TO_LOAD, function () {
       var gitIgnore = fs.readFileSync(PACKAGE_DIR + '/.gitignore', 'utf8');
 
-      _.forOwn(PACKAGES, function (def, name) {
+      _.forOwn(PACKAGES_TO_LOAD, function (def, name) {
         if (gitIgnore.indexOf(name) < 0 && name !== 'token')
           throw name + ' was not in the .gitignore';
       });
 
       done();
     });
+  });
+});
+
+var PACKAGES_TO_LINK = {
+  "jon:bank-account": {
+    "path": "test/source-for-link/mgp-private-package-test/bank-account"
+  },
+  "jon:secrets": {
+    "path": "test/source-for-link/mgp-private-package-test/secrets"
+  },
+  "jon:bank-account2": {
+    "path": "test/source-for-link/mgp-private-package-test/bank-account"
+  }
+};
+
+describe('Meteor Git Packages -- mgp link', function () {
+  Packages.config(PACKAGE_DIR);
+
+  it('should link each package into the package directory', function (done) {
+    this.timeout(30000);
+
+    Packages.link(PACKAGES_TO_LINK, checkFiles(done));
   });
 });
