@@ -21,7 +21,7 @@ This tools helps you share private meteor packages.
 }
 ````
 
-- Run `mgp` in your meteor directory to copy the packages from github.
+- Run `mgp` in your meteor directory to copy the packages from github or `mgp my:private-package` to copy an individual package.
 
 or
 
@@ -38,4 +38,4 @@ or
 }
 ````
 
-- Run `mgp link` in your meteor directory to symlink your local packages.
+- Run `mgp link` in your meteor directory to symlink your local packages or `mgp link my:private-package` to symlink an individual package.
