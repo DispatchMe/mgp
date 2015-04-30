@@ -1,11 +1,11 @@
 var Packages = module.exports = {};
 
 var _ = require('lodash'),
-  fs = require('fs-extra'),
-  path = require('path'),
-  request = require('request'),
-  tar = require('tar'),
-  zlib = require('zlib');
+    fs = require('fs-extra'),
+    path = require('path'),
+    request = require('request'),
+    tar = require('tar'),
+    zlib = require('zlib');
 
 var PACKAGE_DIR = process.cwd() + '/packages';
 
@@ -113,11 +113,12 @@ Packages.link = function (packages, callback) {
   var dirLinked = _.after(_.keys(packages).length, callback);
 
   _.forOwn(packages, function (def, packageName) {
+    if (!def.path || !packageName) return;
+
     var dest = PACKAGE_DIR + '/' + packageName;
     fs.removeSync(dest);
 
     var src = resolvePath(def.path);
-
     fs.symlink(src, dest, function (error) {
       // Fail explicitly.
       if (error) throw 'Could not copy ' + src + ' to ' + dest;
@@ -155,17 +156,14 @@ Packages.load = function (packages, callback) {
   _.forOwn(tarballs, function (packagesForTar, tarUrl) {
     var tarballDir = tempDir + '/' + index++;
 
-    request.get({
-      uri: tarUrl,
-      headers: headers
-    })
-      .on('error', function (error) {
-        throw error;
-      })
-      .pipe(zlib.Gunzip())
-      .pipe(tar.Extract({path: tarballDir, strip: 1}))
-      .on('end', function () {
-        copyPackages(packagesForTar, tarballDir, tarballCopied);
-      });
+    request.get({uri: tarUrl, headers: headers})
+        .on('error', function (error) {
+          throw error;
+        })
+        .pipe(zlib.Gunzip())
+        .pipe(tar.Extract({path: tarballDir, strip: 1}))
+        .on('end', function () {
+          copyPackages(packagesForTar, tarballDir, tarballCopied);
+        });
   });
 };
