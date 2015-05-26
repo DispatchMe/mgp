@@ -69,12 +69,17 @@ var copyPackages = function (packages, tarballDir, done) {
   _.forOwn(packages, function (src, packageName) {
     src = tarballDir + '/' + src;
 
+    // Convert colons in package names to underscores for Windows
+    packageName = packageName.replace(/:/g, '_');
     var dest = PACKAGE_DIR + '/' + packageName;
     fs.removeSync(dest);
 
     fs.copy(src, dest, function (error) {
       // Fail explicitly.
-      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+      if (error) {
+        console.error(error);
+        throw 'Could not copy ' + src + ' to ' + dest;
+      }
 
       packageCopied();
     });
@@ -93,6 +98,9 @@ Packages.ensureGitIgnore = function (packages, callback) {
   fs.readFile(filePath, 'utf8', function (err, gitIgnore) {
     // Append packages to the gitignore
     _.forOwn(packages, function (def, name) {
+      // Convert colons in package names to underscores for Windows
+      name = name.replace(/:/g, '_');
+
       if (name === 'token' || gitIgnore.indexOf(name) > -1) return;
 
       gitIgnore += name + '\n';
@@ -115,13 +123,20 @@ Packages.link = function (packages, callback) {
   _.forOwn(packages, function (def, packageName) {
     if (!def.path || !packageName) return;
 
+    // Convert colons in package names to underscores for Windows
+    packageName = packageName.replace(/:/g, '_');
     var dest = PACKAGE_DIR + '/' + packageName;
     fs.removeSync(dest);
 
     var src = resolvePath(def.path);
-    fs.symlink(src, dest, function (error) {
+
+    // Type parameter required in windows to create a navigable explorer link
+    fs.symlink(src, dest, 'dir', function (error) {
       // Fail explicitly.
-      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+      if (error) {
+        console.error(error);
+        throw 'Could not copy ' + src + ' to ' + dest;
+      }
 
       dirLinked();
     });
