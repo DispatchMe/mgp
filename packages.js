@@ -50,6 +50,8 @@ var getTarballDict = function (packages) {
   var tarballs = {};
 
   _.forOwn(packages, function (definition, packageName) {
+    if (!definition) return;
+
     var url = definition.tarball;
     if (!url) return;
 
@@ -97,13 +99,13 @@ Packages.ensureGitIgnore = function (packages, callback) {
   fs.ensureFileSync(filePath);
   fs.readFile(filePath, 'utf8', function (err, gitIgnore) {
     // Append packages to the gitignore
-    _.forOwn(packages, function (def, name) {
+    _.forOwn(packages, function (def, packageName) {
       // Convert colons in package names to underscores for Windows
-      name = name.replace(/:/g, '_');
+      packageName = packageName.replace(/:/g, '_');
 
-      if (name === 'token' || gitIgnore.indexOf(name) > -1) return;
+      if (packageName === 'token' || gitIgnore.indexOf(packageName) > -1) return;
 
-      gitIgnore += name + '\n';
+      gitIgnore += packageName + '\n';
     });
 
     fs.writeFile(filePath, gitIgnore, callback);
