@@ -1,4 +1,4 @@
-# Meteor Git Packages [![Build Status](https://travis-ci.org/DispatchMe/mgp.svg)](https://travis-ci.org/DispatchMe/mgp)
+# Meteor Git Packages [![Build Status](https://travis-ci.org/DispatchMe/mgp.svg?branch=master)](https://travis-ci.org/DispatchMe/mgp)
 
 This tools helps you share private meteor packages.
 
