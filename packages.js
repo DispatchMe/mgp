@@ -50,6 +50,8 @@ var getTarballDict = function (packages) {
   var tarballs = {};
 
   _.forOwn(packages, function (definition, packageName) {
+    if (!definition) return;
+
     var url = definition.tarball;
     if (!url) return;
 
@@ -69,12 +71,17 @@ var copyPackages = function (packages, tarballDir, done) {
   _.forOwn(packages, function (src, packageName) {
     src = tarballDir + '/' + src;
 
+    // Convert colons in package names to underscores for Windows
+    packageName = packageName.replace(/:/g, '_');
     var dest = PACKAGE_DIR + '/' + packageName;
     fs.removeSync(dest);
 
     fs.copy(src, dest, function (error) {
       // Fail explicitly.
-      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+      if (error) {
+        console.error(error);
+        throw 'Could not copy ' + src + ' to ' + dest;
+      }
 
       packageCopied();
     });
@@ -92,10 +99,13 @@ Packages.ensureGitIgnore = function (packages, callback) {
   fs.ensureFileSync(filePath);
   fs.readFile(filePath, 'utf8', function (err, gitIgnore) {
     // Append packages to the gitignore
-    _.forOwn(packages, function (def, name) {
-      if (name === 'token' || gitIgnore.indexOf(name) > -1) return;
+    _.forOwn(packages, function (def, packageName) {
+      // Convert colons in package names to underscores for Windows
+      packageName = packageName.replace(/:/g, '_');
 
-      gitIgnore += name + '\n';
+      if (packageName === 'token' || gitIgnore.indexOf(packageName) > -1) return;
+
+      gitIgnore += packageName + '\n';
     });
 
     fs.writeFile(filePath, gitIgnore, callback);
@@ -115,13 +125,20 @@ Packages.link = function (packages, callback) {
   _.forOwn(packages, function (def, packageName) {
     if (!def.path || !packageName) return;
 
+    // Convert colons in package names to underscores for Windows
+    packageName = packageName.replace(/:/g, '_');
     var dest = PACKAGE_DIR + '/' + packageName;
     fs.removeSync(dest);
 
     var src = resolvePath(def.path);
-    fs.symlink(src, dest, function (error) {
+
+    // Type parameter required in windows to create a navigable explorer link
+    fs.symlink(src, dest, 'dir', function (error) {
       // Fail explicitly.
-      if (error) throw 'Could not copy ' + src + ' to ' + dest;
+      if (error) {
+        console.error(error);
+        throw 'Could not copy ' + src + ' to ' + dest;
+      }
 
       dirLinked();
     });

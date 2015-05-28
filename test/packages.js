@@ -33,9 +33,9 @@ var expectFiles = function (dir, files) {
 var checkFiles = function (done) {
   return function () {
     expectFiles('test/packages', [
-      'jon:bank-account/README.md',
-      'jon:bank-account/folder/INSIDE.md',
-      'jon:secrets/README.md'
+      'jon_bank-account/README.md',
+      'jon_bank-account/folder/INSIDE.md',
+      'jon_secrets/README.md'
     ]);
 
     done();
@@ -57,9 +57,12 @@ describe('Meteor Git Packages -- mgp', function () {
     Packages.ensureGitIgnore(PACKAGES_TO_LOAD, function () {
       var gitIgnore = fs.readFileSync(PACKAGE_DIR + '/.gitignore', 'utf8');
 
-      _.forOwn(PACKAGES_TO_LOAD, function (def, name) {
-        if (gitIgnore.indexOf(name) < 0 && name !== 'token')
-          throw name + ' was not in the .gitignore';
+      _.forOwn(PACKAGES_TO_LOAD, function (def, packageName) {
+        // Convert colons in package names to underscores for Windows
+        packageName = packageName.replace(/:/g, '_');
+
+        if (gitIgnore.indexOf(packageName) < 0 && packageName !== 'token')
+          throw packageName + ' was not in the .gitignore';
       });
 
       done();
