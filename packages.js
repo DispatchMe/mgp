@@ -173,14 +173,39 @@ Packages.load = function (packages, callback) {
   _.forOwn(tarballs, function (packagesForTar, tarUrl) {
     var tarballDir = tempDir + '/' + index++;
 
-    request.get({uri: tarUrl, headers: headers})
-        .on('error', function (error) {
-          throw error;
-        })
-        .pipe(zlib.Gunzip())
-        .pipe(tar.Extract({path: tarballDir, strip: 1}))
-        .on('end', function () {
-          copyPackages(packagesForTar, tarballDir, tarballCopied);
-        });
+    var unzipStream = zlib.Gunzip();
+    var inflateStream = zlib.Inflate();
+    var tarStream = tar.Extract({path: tarballDir, strip: 1});
+    var requestStream = request({uri: tarUrl, headers: headers});
+
+    _.each([unzipStream, tarStream, requestStream], function (stream) {
+      stream.on('error', function (error) {
+        throw error;
+      });
+    });
+
+    tarStream.on('end', function () {
+      copyPackages(packagesForTar, tarballDir, tarballCopied);
+    });
+
+    requestStream.on('response', function (res) {
+      if (res.statusCode !== 200) {
+        var server = res.headers.server || 'Unknown server';
+        var statusCode = res.headers.status || res.statusCode;
+        console.error('Unable to download ' + tarUrl + '. ' + server + ' responded with ' + statusCode);
+        return;
+      }
+
+      var encoding = res.headers['content-encoding'];
+      var type = res.headers['content-type'];
+      if (type === 'application/x-gzip' || encoding === 'gzip') {
+        res.pipe(unzipStream).pipe(tarStream);
+      } else if (encoding === 'deflate') {
+        res.pipe(inflateStream).pipe(tarStream);
+      } else {
+        res.pipe(tarStream);
+      }
+    });
+
   });
 };
