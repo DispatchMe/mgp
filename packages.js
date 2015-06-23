@@ -3,18 +3,25 @@ var Packages = module.exports = {};
 var _ = require('lodash'),
     fs = require('fs-extra'),
     path = require('path'),
-    request = require('request'),
-    tar = require('tar'),
-    zlib = require('zlib');
+    shell = require('shelljs');
+
+// We rely on system git command and its configuration
+// In this way it is possible to pick up .netrc
+if (!shell.which('git')) {
+  shell.echo('Sorry, this script requires git');
+  shell.exit(1);
+}
 
 var PACKAGE_DIR = process.cwd() + '/packages';
 
 function resolvePath(string) {
   if (string.substr(0, 1) === '~') {
     var homedir = (process.platform.substr(0, 3) === 'win') ? process.env.HOMEPATH : process.env.HOME;
-    string = homedir + string.substr(1)
+    string = homedir + string.substr(1);
+  } else if (string.substr(0, 1) !== '/') {
+    string = process.cwd() + '/' + string;
   }
-  return path.resolve(string)
+  return path.resolve(string);
 }
 
 /**
@@ -44,48 +51,34 @@ Packages.fromFile = function (file, callback) {
   });
 };
 
-// Create a packages document per tarball url.
-// { tarUrl: { packageName: tarPath, .. }, ... }
-var getTarballDict = function (packages) {
-  var tarballs = {};
+// Create a packages document per git url.
+// { gitRepo: { vesion: { packageName: packagePath, .. }, ... } }
+var getPackagesDict = function(packages) {
+  var resolvedPackages = {};
 
-  _.forOwn(packages, function (definition, packageName) {
-    if (!definition) return;
+  _.forOwn(packages, function(definition, packageName) {
+    if(!definition) return;
 
-    var url = definition.tarball;
-    if (!url) return;
+    var git = definition.git;
+    if(!git) return;
 
-    var tarball = tarballs[url] = tarballs[url] || {};
+    var repo = resolvedPackages[git] = resolvedPackages[git] || {};
 
-    // package name -> source path inside tarball
-    tarball[packageName] = definition.path || '';
+    // If no version provided - pull HEAD
+    version = definition.version || 'HEAD';
+    repo[version] = repo[version] || {};
+    repo[version][packageName] = definition.path || '';
   });
 
-  return tarballs;
+  return resolvedPackages;
 };
 
-// Copy the packages from the tarball directory to the package path
-var copyPackages = function (packages, tarballDir, done) {
-  var packageCopied = _.after(_.keys(packages).length, done);
-
-  _.forOwn(packages, function (src, packageName) {
-    src = tarballDir + '/' + src;
-
-    // Convert colons in package names to underscores for Windows
-    packageName = packageName.replace(/:/g, '_');
-    var dest = PACKAGE_DIR + '/' + packageName;
-    fs.removeSync(dest);
-
-    fs.copy(src, dest, function (error) {
-      // Fail explicitly.
-      if (error) {
-        console.error(error);
-        throw 'Could not copy ' + src + ' to ' + dest;
-      }
-
-      packageCopied();
-    });
-  });
+// Test if path exists and fail with error if it is not exists
+var checkPathExist = function(path, errorMessage) {
+  if (!shell.test('-e', path)) {
+    shell.echo('Error: ' + errorMessage);
+    shell.exit(1);
+  }
 };
 
 /**
@@ -118,7 +111,7 @@ Packages.ensureGitIgnore = function (packages, callback) {
  * @param {Function} callback
  */
 Packages.link = function (packages, callback) {
-  fs.ensureDirSync(PACKAGE_DIR);
+  shell.mkdir('-p', PACKAGE_DIR);
 
   var dirLinked = _.after(_.keys(packages).length, callback);
 
@@ -128,84 +121,74 @@ Packages.link = function (packages, callback) {
     // Convert colons in package names to underscores for Windows
     packageName = packageName.replace(/:/g, '_');
     var dest = PACKAGE_DIR + '/' + packageName;
-    fs.removeSync(dest);
+    shell.rm('-fr', dest);
 
     var src = resolvePath(def.path);
+    checkPathExist(src, 'Cannot find package ' + packageName + ' at ' + src);
 
-    // Type parameter required in windows to create a navigable explorer link
-    fs.symlink(src, dest, 'dir', function (error) {
-      // Fail explicitly.
-      if (error) {
-        console.error(error);
-        throw 'Could not copy ' + src + ' to ' + dest;
-      }
+    shell.ln('-s', src, dest);
+    checkPathExist(src, 'Link failed for ' + dest);
 
-      dirLinked();
-    });
+    dirLinked();
   });
 };
 
 /**
- * Download the tarballs and copy the packages.
+ * Clones repositories and copy the packages.
  * @param packages The packages to load.
  * @param {Function} callback
  */
 Packages.load = function (packages, callback) {
-  fs.ensureDirSync(PACKAGE_DIR);
+  shell.mkdir('-p', PACKAGE_DIR);
 
   // Create a temp directory to store the tarballs
   var tempDir = PACKAGE_DIR + '/temp';
-  fs.ensureDirSync(tempDir);
+  shell.rm('-fr', tempDir);
+  shell.mkdir('-p', tempDir);
+  shell.cd(tempDir);
 
-  var tarballs = getTarballDict(packages);
+  var resolvedPackages = getPackagesDict(packages);
 
   // Remove the temp directory after the packages are copied.
-  var tarballCopied = _.after(_.keys(tarballs).length, function () {
-    fs.removeSync(tempDir);
+  var packagesCopied = _.after(_.keys(resolvedPackages).length, function () {
+    shell.cd(process.cwd());
+    shell.rm('-fr', tempDir);
     callback();
   });
 
-  // Load the tarballs from github.
-  var headers = {'User-Agent': 'meteor-git-packages tool'};
-  if (packages.token) headers.Authorization = 'token ' + packages.token;
+  _.forOwn(resolvedPackages, function (repoPackages, gitRepo) {
+    if (shell.exec('git clone ' + gitRepo, { silent:true }).code !== 0) {
+      shell.echo('Error: Git clone failed');
+      shell.exit(1);
+    }
 
-  var index = 0;
-  _.forOwn(tarballs, function (packagesForTar, tarUrl) {
-    var tarballDir = tempDir + '/' + index++;
+    var repoDir = tempDir + '/' + shell.ls(tempDir)[0];
+    shell.cd(repoDir);
 
-    var unzipStream = zlib.Gunzip();
-    var inflateStream = zlib.Inflate();
-    var tarStream = tar.Extract({path: tarballDir, strip: 1});
-    var requestStream = request({uri: tarUrl, headers: headers});
+    _.forOwn(repoPackages, function(storedPackages, version) {
+      _.forOwn(storedPackages, function (src, packageName) {
+        if (shell.exec('git reset --hard ' + version, { silent:true }).code !== 0) {
+          shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
+          shell.exit(1);
+        }
+        packageName = packageName.replace(/:/g, '_');
+        shell.echo('\nProcessing ' + packageName + ' at ' + version);
 
-    _.each([unzipStream, tarStream, requestStream], function (stream) {
-      stream.on('error', function (error) {
-        throw error;
+        shell.echo('Cleaning up');
+        var dest = PACKAGE_DIR + '/' + packageName;
+        shell.rm('-rf', dest);
+
+        src = repoDir + '/' + src + '/';
+        checkPathExist(src, 'Cannot find package in repository: ' + src);
+
+        shell.echo('Copying package');
+        shell.cp('-rf', src, dest);
+        checkPathExist(dest, 'Cannot copy package: ' + dest);
+        shell.echo('Done...\n');
       });
     });
 
-    tarStream.on('end', function () {
-      copyPackages(packagesForTar, tarballDir, tarballCopied);
-    });
-
-    requestStream.on('response', function (res) {
-      if (res.statusCode !== 200) {
-        var server = res.headers.server || 'Unknown server';
-        var statusCode = res.headers.status || res.statusCode;
-        console.error('Unable to download ' + tarUrl + '. ' + server + ' responded with ' + statusCode);
-        return;
-      }
-
-      var encoding = res.headers['content-encoding'];
-      var type = res.headers['content-type'];
-      if (type === 'application/x-gzip' || encoding === 'gzip') {
-        res.pipe(unzipStream).pipe(tarStream);
-      } else if (encoding === 'deflate') {
-        res.pipe(inflateStream).pipe(tarStream);
-      } else {
-        res.pipe(tarStream);
-      }
-    });
-
   });
+
+  packagesCopied();
 };

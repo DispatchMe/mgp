@@ -23,8 +23,7 @@
     "fs-extra": "^0.18.0",
     "lodash": "^3.6.0",
     "minimist": "^1.1.1",
-    "request": "^2.55.0",
-    "tar": "^2.0.0"
+    "shelljs": "^0.5.1"
   },
   "devDependencies": {
     "mocha": "^2.2.1"
