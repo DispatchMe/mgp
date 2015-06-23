@@ -2,3 +2,6 @@
 .idea
 node_modules
 test/packages
+jon_bank-account
+jon_secrets
+jon_bank-account2

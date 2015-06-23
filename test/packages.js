@@ -1,52 +1,67 @@
 var Packages = require('../packages');
 
 var _ = require('lodash'),
-  fs = require('fs-extra');
+  shell = require('shelljs');
+
+var pwd = shell.pwd();
+var PACKAGE_DIR = 'test/packages';
+
+before(function() {
+  shell.rm('-fr', PACKAGE_DIR);
+  Packages.config(PACKAGE_DIR);
+});
+
+after(function(){
+  shell.rm('-fr', PACKAGE_DIR);
+});
 
 var PACKAGES_TO_LOAD = {
   "jon:bank-account": {
-    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/327746c6eb3aface483c9879472cb43c27808185",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "bank-account"
   },
   "jon:secrets": {
-    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/c2792ca2970c6d88e5e2fb6b8a26e26b81d220f9",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "secrets"
   },
-  // Test multiple packages per tarball we ran into
+  // Test multiple package versions per repo we ran into
   // an issue before where that did not work.
   "jon:bank-account2": {
-    "tarball": "https://api.github.com/repos/jperl/mgp-private-package-test/tarball/c2792ca2970c6d88e5e2fb6b8a26e26b81d220f9",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "v0.0.2",
     "path": "bank-account"
   },
-  // From an encrypted variable. We had remove the
-  // hardcoded one because someone was messing with it :(
-  "token": process.env.GITHUB_TOKEN
 };
 
 // Throw an error if any of the files are missing.
 var expectFiles = function (dir, files) {
   files.forEach(function (file) {
-    fs.openSync(dir + '/' + file, 'r');
+    var path = dir + '/' + file;
+    if (!shell.test('-f', path)) {
+      shell.echo('Assertion failed - file not found: ' + path);
+    }
   });
 };
 
 var checkFiles = function (done) {
   return function () {
+    shell.cd(pwd);
     expectFiles('test/packages', [
       'jon_bank-account/README.md',
       'jon_bank-account/folder/INSIDE.md',
-      'jon_secrets/README.md'
+      'jon_secrets/README.md',
+      'jon_bank-account2/README.md',
+      'jon_bank-account2/folder/NEW_INSIDE.md',
     ]);
 
     done();
   };
 };
 
-var PACKAGE_DIR = 'test/packages';
 
 describe('Meteor Git Packages -- mgp', function () {
-  Packages.config(PACKAGE_DIR);
-
   it('should copy each package into the package directory', function (done) {
     this.timeout(30000);
 
@@ -55,7 +70,7 @@ describe('Meteor Git Packages -- mgp', function () {
 
   it('should create a .gitignore in the package directory', function (done) {
     Packages.ensureGitIgnore(PACKAGES_TO_LOAD, function () {
-      var gitIgnore = fs.readFileSync(PACKAGE_DIR + '/.gitignore', 'utf8');
+      var gitIgnore = shell.cat(PACKAGE_DIR + '/.gitignore');
 
       _.forOwn(PACKAGES_TO_LOAD, function (def, packageName) {
         // Convert colons in package names to underscores for Windows
@@ -83,8 +98,6 @@ var PACKAGES_TO_LINK = {
 };
 
 describe('Meteor Git Packages -- mgp link', function () {
-  Packages.config(PACKAGE_DIR);
-
   it('should symlink each package into the package directory', function (done) {
     this.timeout(30000);
 
