@@ -17,19 +17,19 @@ after(function(){
 
 var PACKAGES_TO_LOAD = {
   "jon:bank-account": {
-    "git": "git@github.com:creeonix/mgp-private-package-test.git",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
     "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "bank-account"
   },
   "jon:secrets": {
-    "git": "git@github.com:creeonix/mgp-private-package-test.git",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
     "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "secrets"
   },
   // Test multiple package versions per repo we ran into
   // an issue before where that did not work.
   "jon:bank-account2": {
-    "git": "git@github.com:creeonix/mgp-private-package-test.git",
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
     "version": "v0.0.2",
     "path": "bank-account"
   },
