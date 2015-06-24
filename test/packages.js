@@ -32,7 +32,7 @@ var PACKAGES_TO_LOAD = {
     "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
     "version": "v0.0.2",
     "path": "bank-account"
-  },
+  }
 };
 
 // Throw an error if any of the files are missing.

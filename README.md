@@ -6,18 +6,19 @@ This tools helps you share private meteor packages.
 
 - `npm install -g mgp`
 
-- Add `git-packages.json` to the root of your project and [generate](https://github.com/settings/applications#personal-access-tokens) a token for private tarball access.
+- Add `git-packages.json` to the root of your project.
 
 ````
 {
   "my:private-package": {
-    "tarball": "https://api.github.com/repos/my/private-packages/tarball/commithash",
+    "git": ""git@github.com:my/private-packages.git",
+    "version": "commithashortag",
     "path": "optional/directory/path"
   },
   "my:other-private-package": {
-    "tarball": "https://api.github.com/repos/my/private-packages/tarball/commithash"
-  },
-  "token": "GITHUB_ACCESS_TOKEN"
+    "git": ""git@github.com:my/private-packages.git",
+    "version": "commithashortag"
+  }
 }
 ````
 
