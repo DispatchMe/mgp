@@ -6,12 +6,12 @@ var _ = require('lodash'),
 var pwd = shell.pwd();
 var PACKAGE_DIR = 'test/packages';
 
-before(function() {
+before(function () {
   shell.rm('-fr', PACKAGE_DIR);
   Packages.config(PACKAGE_DIR);
 });
 
-after(function(){
+after(function () {
   shell.rm('-fr', PACKAGE_DIR);
 });
 
@@ -21,17 +21,26 @@ var PACKAGES_TO_LOAD = {
     "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "bank-account"
   },
+
   "jon:secrets": {
     "git": "https://github.com/DispatchMe/mgp-private-package-test.git",
     "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
     "path": "secrets"
   },
+
   // Test multiple package versions per repo we ran into
   // an issue before where that did not work.
   "jon:bank-account2": {
     "git": "https://github.com/DispatchMe/mgp-private-package-test.git",
     "version": "v0.0.2",
     "path": "bank-account"
+  },
+
+  // Test hitting another repo
+  "dispatch:mgp": {
+    "git": "https://github.com/DispatchMe/mgp.git",
+    "version": "514633ccc63779620e161c0ce6972c3977ae4539",
+    "path": "test/source-for-link/mgp-private-package-test/secrets"
   }
 };
 
@@ -39,8 +48,9 @@ var PACKAGES_TO_LOAD = {
 var expectFiles = function (dir, files) {
   files.forEach(function (file) {
     var path = dir + '/' + file;
+
     if (!shell.test('-f', path)) {
-      shell.echo('Assertion failed - file not found: ' + path);
+      throw new Error('Assertion failed - file not found: ' + path);
     }
   });
 };
@@ -48,12 +58,14 @@ var expectFiles = function (dir, files) {
 var checkFiles = function (done) {
   return function () {
     shell.cd(pwd);
+
     expectFiles('test/packages', [
       'jon_bank-account/README.md',
       'jon_bank-account/folder/INSIDE.md',
       'jon_secrets/README.md',
       'jon_bank-account2/README.md',
-      'jon_bank-account2/folder/NEW_INSIDE.md'
+      'jon_bank-account2/folder/NEW_INSIDE.md',
+      'dispatch_mgp/README.md'
     ]);
 
     done();
@@ -93,7 +105,10 @@ var PACKAGES_TO_LINK = {
     "path": "test/source-for-link/mgp-private-package-test/secrets"
   },
   "jon:bank-account2": {
-    "path": "test/source-for-link/mgp-private-package-test/bank-account"
+    "path": "test/source-for-link/mgp-private-package-test/bank-account2"
+  },
+  "dispatch:mgp": {
+    "path": "test/source-for-link/mgp-private-package-test/secrets"
   }
 };
 

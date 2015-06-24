@@ -149,25 +149,27 @@ Packages.load = function (packages, callback) {
 
   var resolvedPackages = getPackagesDict(packages);
 
-  // Remove the temp directory after the packages are copied.
-  var packagesCopied = _.after(_.keys(resolvedPackages).length, function () {
-    shell.cd(process.cwd());
-    shell.rm('-fr', tempDir);
-    callback();
-  });
+  var repoDirIndex = 0;
 
   _.forOwn(resolvedPackages, function (repoPackages, gitRepo) {
-    if (shell.exec('git clone ' + gitRepo, {silent: true}).code !== 0) {
+    var repoDir = tempDir + '/' + repoDirIndex;
+
+    // Change to the temp directory before cloning the repo
+    shell.cd(tempDir);
+
+    if (shell.exec('git clone ' + gitRepo + ' ' + repoDirIndex, {silent: true}).code !== 0) {
       shell.echo('Error: Git clone failed');
       shell.exit(1);
     }
 
-    var repoDir = tempDir + '/' + shell.ls(tempDir)[0];
+    // Change to the repo directory
     shell.cd(repoDir);
+
+    repoDirIndex++;
 
     _.forOwn(repoPackages, function (storedPackages, version) {
       _.forOwn(storedPackages, function (src, packageName) {
-        if (shell.exec('git reset --hard ' + version, {silent: true}).code !== 0) {
+        if (shell.exec('git reset --hard ' + version, {silent: false}).code !== 0) {
           shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
           shell.exit(1);
         }
@@ -190,5 +192,8 @@ Packages.load = function (packages, callback) {
 
   });
 
-  packagesCopied();
+  // Remove the temp directory after the packages are copied.
+  shell.cd(process.cwd());
+  shell.rm('-fr', tempDir);
+  callback();
 };
