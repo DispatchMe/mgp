@@ -11,12 +11,12 @@ This tools helps you share private meteor packages.
 ````
 {
   "my:private-package": {
-    "git": ""git@github.com:my/private-packages.git",
+    "git": "git@github.com:my/private-packages.git",
     "version": "commithashortag",
     "path": "optional/directory/path"
   },
   "my:other-private-package": {
-    "git": ""git@github.com:my/private-packages.git",
+    "git": "git@github.com:my/private-packages.git",
     "version": "commithashortag"
   }
 }
