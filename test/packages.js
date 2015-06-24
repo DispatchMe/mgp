@@ -53,7 +53,7 @@ var checkFiles = function (done) {
       'jon_bank-account/folder/INSIDE.md',
       'jon_secrets/README.md',
       'jon_bank-account2/README.md',
-      'jon_bank-account2/folder/NEW_INSIDE.md',
+      'jon_bank-account2/folder/NEW_INSIDE.md'
     ]);
 
     done();

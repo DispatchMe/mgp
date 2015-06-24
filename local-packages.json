@@ -1,8 +1,11 @@
 {
-  "my:private-package": {
-    "path": "~/path/to/private-package"
+  "jon:bank-account": {
+    "path": "~/path/to/bank-account"
   },
-  "my:other-private-package": {
-    "path": "relative/path/to/other-private-package"
+  "jon:secrets": {
+    "path": "~/path/to/secrets"
+  },
+  "jon:bank-account2": {
+    "path": "~/path/to/bank-account2"
   }
 }

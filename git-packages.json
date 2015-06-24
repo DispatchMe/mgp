@@ -1,10 +1,17 @@
 {
-  "my:private-package": {
-    "tarball": "https://api.github.com/my/private-packages/tarball/commithash",
-    "path": "optional/directory/path"
+  "jon:bank-account": {
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
+    "path": "bank-account"
   },
-  "my:other-private-package": {
-    "tarball": "https://api.github.com/my/private-packages/tarball/commithash"
+  "jon:secrets": {
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "441e30e2c4b6622674c1663914baeff51c6c3ee5",
+    "path": "secrets"
   },
-  "token": "GITHUB_ACCESS_TOKEN"
+  "jon:bank-account2": {
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "version": "v0.0.2",
+    "path": "bank-account"
+  }
 }

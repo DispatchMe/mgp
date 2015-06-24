@@ -1,9 +1,9 @@
 var Packages = module.exports = {};
 
 var _ = require('lodash'),
-    fs = require('fs-extra'),
-    path = require('path'),
-    shell = require('shelljs');
+  fs = require('fs-extra'),
+  path = require('path'),
+  shell = require('shelljs');
 
 // We rely on system git command and its configuration
 // In this way it is possible to pick up .netrc
@@ -52,15 +52,15 @@ Packages.fromFile = function (file, callback) {
 };
 
 // Create a packages document per git url.
-// { gitRepo: { vesion: { packageName: packagePath, .. }, ... } }
-var getPackagesDict = function(packages) {
+// { gitRepo: { version: { packageName: packagePath, .. }, ... } }
+var getPackagesDict = function (packages) {
   var resolvedPackages = {};
 
-  _.forOwn(packages, function(definition, packageName) {
-    if(!definition) return;
+  _.forOwn(packages, function (definition, packageName) {
+    if (!definition) return;
 
     var git = definition.git;
-    if(!git) return;
+    if (!git) return;
 
     var repo = resolvedPackages[git] = resolvedPackages[git] || {};
 
@@ -74,7 +74,7 @@ var getPackagesDict = function(packages) {
 };
 
 // Test if path exists and fail with error if it is not exists
-var checkPathExist = function(path, errorMessage) {
+var checkPathExist = function (path, errorMessage) {
   if (!shell.test('-e', path)) {
     shell.echo('Error: ' + errorMessage);
     shell.exit(1);
@@ -157,7 +157,7 @@ Packages.load = function (packages, callback) {
   });
 
   _.forOwn(resolvedPackages, function (repoPackages, gitRepo) {
-    if (shell.exec('git clone ' + gitRepo, { silent:true }).code !== 0) {
+    if (shell.exec('git clone ' + gitRepo, {silent: true}).code !== 0) {
       shell.echo('Error: Git clone failed');
       shell.exit(1);
     }
@@ -165,9 +165,9 @@ Packages.load = function (packages, callback) {
     var repoDir = tempDir + '/' + shell.ls(tempDir)[0];
     shell.cd(repoDir);
 
-    _.forOwn(repoPackages, function(storedPackages, version) {
+    _.forOwn(repoPackages, function (storedPackages, version) {
       _.forOwn(storedPackages, function (src, packageName) {
-        if (shell.exec('git reset --hard ' + version, { silent:true }).code !== 0) {
+        if (shell.exec('git reset --hard ' + version, {silent: true}).code !== 0) {
           shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
           shell.exit(1);
         }
