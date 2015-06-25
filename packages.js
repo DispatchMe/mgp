@@ -184,7 +184,8 @@ Packages.load = function (packages, callback) {
         checkPathExist(src, 'Cannot find package in repository: ' + src);
 
         shell.echo('Copying package');
-        shell.cp('-rf', src, dest);
+        // Adding the dot after `src` forces it to copy hidden files as well
+        shell.cp('-rf', src + '.', dest);
         checkPathExist(dest, 'Cannot copy package: ' + dest);
         shell.echo('Done...\n');
       });
