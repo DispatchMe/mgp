@@ -32,7 +32,7 @@ var PACKAGES_TO_LOAD = {
   // an issue before where that did not work.
   "jon:bank-account2": {
     "git": "https://github.com/DispatchMe/mgp-private-package-test.git",
-    "version": "v0.0.2",
+    "version": "v0.0.3",
     "path": "bank-account"
   },
 
@@ -65,6 +65,7 @@ var checkFiles = function (done) {
       'jon_secrets/README.md',
       'jon_bank-account2/README.md',
       'jon_bank-account2/folder/NEW_INSIDE.md',
+      'jon_bank-account2/folder/.dotfile',
       'dispatch_mgp/README.md'
     ]);
 
