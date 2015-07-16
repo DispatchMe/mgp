@@ -157,7 +157,9 @@ Packages.load = function (packages, callback) {
     // Change to the temp directory before cloning the repo
     shell.cd(tempDir);
 
-    if (shell.exec('git clone ' + gitRepo + ' ' + repoDirIndex, {silent: true}).code !== 0) {
+    if (shell.exec('git clone ' + gitRepo + ' ' + repoDirIndex, {
+        silent: true
+      }).code !== 0) {
       shell.echo('Error: Git clone failed');
       shell.exit(1);
     }
@@ -169,7 +171,9 @@ Packages.load = function (packages, callback) {
 
     _.forOwn(repoPackages, function (storedPackages, version) {
       _.forOwn(storedPackages, function (src, packageName) {
-        if (shell.exec('git reset --hard ' + version, {silent: false}).code !== 0) {
+        if (shell.exec('git reset --hard ' + version, {
+            silent: false
+          }).code !== 0) {
           shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
           shell.exit(1);
         }
@@ -197,4 +201,19 @@ Packages.load = function (packages, callback) {
   shell.cd(process.cwd());
   shell.rm('-fr', tempDir);
   callback();
+};
+
+/**
+ * Convert github ssh urls to https. This is useful for defining ssh locally and then using .netrc in build tools.
+ */
+Packages.toHttps = function (packages) {
+  packages = _.cloneDeep(packages);
+
+  _.forOwn(packages, function (definition, packageName) {
+    if (definition.git && definition.git.indexOf('git@github.com:') > -1) {
+      definition.git = 'https://github.com/' + definition.git.substring(15);
+    }
+  });
+
+  return packages;
 };

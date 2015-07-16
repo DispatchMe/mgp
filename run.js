@@ -8,6 +8,10 @@ var Packages = require('./packages');
 // or the individual package that was passed.
 var link = _.contains(argv._, 'link');
 
+// If https is passed, convert any ssh urls to https
+// this is useful for using .netrc
+var useHttps = !!argv.https;
+
 // The last parameter can be an individual package to copy or link.
 var packageName = argv._[1] || !link && argv._[0];
 
@@ -24,14 +28,22 @@ Packages.fromFile(packageDefinitionFile, function (error, packages) {
 
   // Only copy or link the specified package.
   if (packageName) {
-    if (!packages[packageName])
+    if (!packages[packageName]) {
       return console.log(packageName + ' was not defined in ' + packageDefinitionFile);
+    }
 
     packages = _.pick(packages, packageName, 'token');
   }
 
   Packages.ensureGitIgnore(packages, done);
 
-  if (link) Packages.link(packages, done);
-  else Packages.load(packages, done);
+  if (link) {
+    Packages.link(packages, done);
+  } else {
+    if (useHttps) {
+      packages = Packages.toHttps(packages);
+    }
+
+    Packages.load(packages, done);
+  }
 });

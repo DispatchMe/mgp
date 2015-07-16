@@ -1,8 +1,9 @@
+var _ = require('lodash');
+var assert = require('assert');
+var shell = require('shelljs');
+
 var Packages = require('../packages');
 var Test = require('./test');
-
-var _ = require('lodash');
-var shell = require('shelljs');
 
 describe('Meteor Git Packages -- mgp', function () {
   before(Test.prepare);
@@ -12,6 +13,17 @@ describe('Meteor Git Packages -- mgp', function () {
     this.timeout(30000);
 
     Packages.load(Test.PACKAGE_DEFINITIONS, Test.checkFiles(done));
+  });
+
+  it('should convert ssh urls to https when --https is passed', function () {
+    var httpsDefinitions = Packages.toHttps({
+      'package-one': {
+        'git': 'git@github.com:DispatchMe/mgp-private-package-test.git'
+      }
+    });
+
+    assert.equal(httpsDefinitions['package-one'].git,
+      'https://github.com/DispatchMe/mgp-private-package-test.git');
   });
 
   it('should create a .gitignore in the package directory', function (done) {
