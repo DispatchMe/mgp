@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-var _ = require('lodash'),
-  argv = require('minimist')(process.argv.slice(2)),
-  Packages = require('./packages');
+var _ = require('lodash');
+var argv = require('minimist')(process.argv.slice(2));
+var Packages = require('./packages');
 
 // If link is passed we should symlink the local-packages.json
 // or the individual package that was passed.

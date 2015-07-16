@@ -2,7 +2,7 @@
   "name": "mgp",
   "description": "Meteor git packages",
   "version": "1.0.2",
-  "bin": "./prepare.js",
+  "bin": "./run.js",
   "scripts": {
     "test": "node_modules/.bin/mocha"
   },
