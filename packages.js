@@ -93,8 +93,8 @@ Packages.ensureGitIgnore = function (packages, callback) {
   fs.readFile(filePath, 'utf8', function (err, gitIgnore) {
     // Append packages to the gitignore
     _.forOwn(packages, function (def, packageName) {
-      // Convert colons in package names to underscores for Windows
-      packageName = packageName.replace(/:/g, '_');
+      // Convert colons in package names to dashes for Windows
+      packageName = packageName.replace(/:/g, '-');
 
       if (packageName === 'token' || gitIgnore.indexOf(packageName) > -1) return;
 
@@ -118,8 +118,8 @@ Packages.link = function (packages, callback) {
   _.forOwn(packages, function (def, packageName) {
     if (!def.path || !packageName) return;
 
-    // Convert colons in package names to underscores for Windows
-    packageName = packageName.replace(/:/g, '_');
+    // Convert colons in package names to dashes for Windows
+    packageName = packageName.replace(/:/g, '-');
     var dest = PACKAGE_DIR + '/' + packageName;
     shell.rm('-fr', dest);
 
@@ -177,7 +177,7 @@ Packages.load = function (packages, callback) {
           shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
           shell.exit(1);
         }
-        packageName = packageName.replace(/:/g, '_');
+        packageName = packageName.replace(/:/g, '-');
         shell.echo('\nProcessing ' + packageName + ' at ' + version);
 
         shell.echo('Cleaning up');
