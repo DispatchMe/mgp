@@ -31,8 +31,8 @@ describe('Meteor Git Packages -- mgp', function () {
       var gitIgnore = shell.cat(Test.PACKAGE_DIR + '/.gitignore');
 
       _.forOwn(Test.PACKAGE_DEFINITIONS, function (def, packageName) {
-        // Convert colons in package names to underscores for Windows
-        packageName = packageName.replace(/:/g, '_');
+        // Convert colons in package names to dashes for Windows
+        packageName = packageName.replace(/:/g, '-');
 
         if (gitIgnore.indexOf(packageName) < 0 && packageName !== 'token') {
           throw packageName + ' was not in the .gitignore';

@@ -9,13 +9,13 @@ var pwd = shell.pwd();
 Test.PACKAGE_DIR = 'test/packages';
 
 var EXPECTED_FILES = [
-  'jon_bank-account/README.md',
-  'jon_bank-account/folder/INSIDE.md',
-  'jon_secrets/README.md',
-  'jon_bank-account2/README.md',
-  'jon_bank-account2/folder/NEW_INSIDE.md',
-  'jon_bank-account2/folder/.dotfile',
-  'dispatch_mgp/README.md'
+  'jon-bank-account/README.md',
+  'jon-bank-account/folder/INSIDE.md',
+  'jon-secrets/README.md',
+  'jon-bank-account2/README.md',
+  'jon-bank-account2/folder/NEW_INSIDE.md',
+  'jon-bank-account2/folder/.dotfile',
+  'dispatch-mgp/README.md'
 ];
 
 Test.PACKAGE_DEFINITIONS = {
