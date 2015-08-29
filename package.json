@@ -1,7 +1,7 @@
 {
   "name": "mgp",
   "description": "Meteor git packages",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "bin": "./run.js",
   "scripts": {
     "test": "node_modules/.bin/mocha"
