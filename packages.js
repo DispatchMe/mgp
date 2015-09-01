@@ -160,7 +160,7 @@ Packages.load = function (packages, callback) {
     if (shell.exec('git clone ' + gitRepo + ' ' + repoDirIndex, {
         silent: true
       }).code !== 0) {
-      shell.echo('Error: Git clone failed');
+      shell.echo('Error: Git clone failed: ' + gitRepo);
       shell.exit(1);
     }
 
