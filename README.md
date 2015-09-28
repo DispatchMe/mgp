@@ -24,9 +24,7 @@ This tools helps you share private meteor packages.
 
 - Run `mgp` in your meteor directory to copy the packages from github or `mgp my:private-package` to copy an individual package.
 
-You can also run `mgp --https` to convert github ssh urls to https. This is useful for using `.netrc` on build machines.
-
-or
+You can also run `mgp --https` to convert github ssh urls to https. This is useful for using [`.netrc`](https://gist.github.com/jperl/91f32a37dc1c12c48ad8) on build machines.
 
 - Add `local-packages.json` to the root of your project:
 
