@@ -19,11 +19,21 @@ describe('Meteor Git Packages -- mgp', function () {
     var httpsDefinitions = Packages.toHttps({
       'package-one': {
         'git': 'git@github.com:DispatchMe/mgp-private-package-test.git'
+      },
+      'package-two': {
+        'git': 'git@bitbucket.org:AnOrg/a-private-git-repo.git'
+      },
+      'package-three': {
+        'git': 'git@some.other.scm:AnOrg/a-private-git-repo.git'
       }
     });
 
     assert.equal(httpsDefinitions['package-one'].git,
       'https://github.com/DispatchMe/mgp-private-package-test.git');
+    assert.equal(httpsDefinitions['package-two'].git,
+      'https://bitbucket.org/AnOrg/a-private-git-repo.git');
+    assert.equal(httpsDefinitions['package-three'].git,
+      'https://some.other.scm/AnOrg/a-private-git-repo.git');
   });
 
   it('should create a .gitignore in the package directory', function (done) {
