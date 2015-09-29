@@ -204,15 +204,16 @@ Packages.load = function (packages, callback) {
 };
 
 /**
- * Convert github ssh urls to https. This is useful for defining ssh locally and then using .netrc in build tools.
+ * Convert git ssh urls to https. This is useful for defining ssh locally and then using .netrc in build tools.
  */
 Packages.toHttps = function (packages) {
   packages = _.cloneDeep(packages);
 
   _.forOwn(packages, function (definition, packageName) {
-    if (definition.git && definition.git.indexOf('git@github.com:') > -1) {
-      definition.git = 'https://github.com/' + definition.git.substring(15);
-    }
+    if (!definition.git)
+      throw new Error('No Git url defined for ' +  packageName);
+    var gitUrl = definition.git.substring(definition.git.lastIndexOf("@") + 1, definition.git.lastIndexOf(":"));
+    definition.git = 'https://' + gitUrl +'/' + definition.git.substring(gitUrl.length + 5);
   });
 
   return packages;
