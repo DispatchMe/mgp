@@ -64,8 +64,9 @@ var getPackagesDict = function (packages) {
 
     var repo = resolvedPackages[git] = resolvedPackages[git] || {};
 
-    // If no branch provided - checkout origin HEAD
-    branch = definition.branch || '-b origin';
+    // If no branch provided - checkout origin HEAD and
+    // don't show 'detached HEAD' notification
+    branch = definition.branch || '-q origin';
     // If no version provided - pull HEAD
     version = definition.version || 'HEAD';
     repo[branch] = repo[branch] || {};
