@@ -18,6 +18,10 @@ This tools helps you share private meteor packages.
   "my:other-private-package": {
     "git": "git@github.com:my/private-packages.git",
     "version": "commithashortag"
+  },
+  "my:yet-another-private-package": {
+    "git": "git@github.com:my/private-packages.git",
+    "branch": "dev"
   }
 }
 ````
