@@ -1,5 +1,9 @@
 # Change Log
 
+### v1.3.1
+
+* Progress Bar added
+
 ### v1.3.0
 
 * Support to specify a branch instead of commit or tag. Thanks sokki
