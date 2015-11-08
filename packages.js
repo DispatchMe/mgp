@@ -64,10 +64,14 @@ var getPackagesDict = function (packages) {
 
     var repo = resolvedPackages[git] = resolvedPackages[git] || {};
 
+    // If no branch provided - checkout origin HEAD and
+    // don't show 'detached HEAD' notification
+    branch = definition.branch || '-q origin';
     // If no version provided - pull HEAD
     version = definition.version || 'HEAD';
-    repo[version] = repo[version] || {};
-    repo[version][packageName] = definition.path || '';
+    repo[branch] = repo[branch] || {};
+    repo[branch][version] = repo[branch][version] || {};
+    repo[branch][version][packageName] = definition.path || '';
   });
 
   return resolvedPackages;
@@ -169,29 +173,37 @@ Packages.load = function (packages, callback) {
 
     repoDirIndex++;
 
-    _.forOwn(repoPackages, function (storedPackages, version) {
-      _.forOwn(storedPackages, function (src, packageName) {
-        if (shell.exec('git reset --hard ' + version, {
-            silent: false
-          }).code !== 0) {
-          shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
-          shell.exit(1);
-        }
-        packageName = packageName.replace(/:/g, '-');
-        shell.echo('\nProcessing ' + packageName + ' at ' + version);
+    _.forOwn(repoPackages, function (branchPackages, branch) {
+      if (shell.exec('git checkout -f ' + branch, {
+          silent: false
+        }).code !== 0) {
+        shell.echo('Error: Git checkout branch failed for ' + gitRepo + '@' + version);
+        shell.exit(1);
+      }
+      _.forOwn(branchPackages, function (storedPackages, version) {
+        _.forOwn(storedPackages, function (src, packageName) {
+          if (shell.exec('git reset --hard ' + version, {
+              silent: false
+            }).code !== 0) {
+            shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
+            shell.exit(1);
+          }
+          packageName = packageName.replace(/:/g, '-');
+          shell.echo('\nProcessing ' + packageName + ' at ' + version);
 
-        shell.echo('Cleaning up');
-        var dest = PACKAGE_DIR + '/' + packageName;
-        shell.rm('-rf', dest);
+          shell.echo('Cleaning up');
+          var dest = PACKAGE_DIR + '/' + packageName;
+          shell.rm('-rf', dest);
 
-        src = repoDir + '/' + src + '/';
-        checkPathExist(src, 'Cannot find package in repository: ' + src);
+          src = repoDir + '/' + src + '/';
+          checkPathExist(src, 'Cannot find package in repository: ' + src);
 
-        shell.echo('Copying package');
-        // Adding the dot after `src` forces it to copy hidden files as well
-        shell.cp('-rf', src + '.', dest);
-        checkPathExist(dest, 'Cannot copy package: ' + dest);
-        shell.echo('Done...\n');
+          shell.echo('Copying package');
+          // Adding the dot after `src` forces it to copy hidden files as well
+          shell.cp('-rf', src + '.', dest);
+          checkPathExist(dest, 'Cannot copy package: ' + dest);
+          shell.echo('Done...\n');
+        });
       });
     });
 
