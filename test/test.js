@@ -15,6 +15,7 @@ var EXPECTED_FILES = [
   'jon-bank-account2/README.md',
   'jon-bank-account2/folder/NEW_INSIDE.md',
   'jon-bank-account2/folder/.dotfile',
+  'jon-bank-account3/folder/.dotfile',
   'dispatch-mgp/README.md'
 ];
 
@@ -37,6 +38,13 @@ Test.PACKAGE_DEFINITIONS = {
     "git": "https://github.com/DispatchMe/mgp-private-package-test.git",
     "version": "v0.0.3",
     "path": "bank-account"
+  },
+
+  // Test using another branch
+  "jon:bank-account3": {
+    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "path": "bank-account",
+    "branch": "master"
   },
 
   // Test using another repo

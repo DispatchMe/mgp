@@ -16,6 +16,6 @@
   },
   "jon:bank-account3": {
     "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
-    "branch": "dev"
+    "branch": "master"
   }
 }
