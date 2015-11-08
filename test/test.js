@@ -42,7 +42,7 @@ Test.PACKAGE_DEFINITIONS = {
 
   // Test using another branch
   "jon:bank-account3": {
-    "git": "git@github.com:DispatchMe/mgp-private-package-test.git",
+    "git": "https://github.com/DispatchMe/mgp-private-package-test.git",
     "path": "bank-account",
     "branch": "master"
   },
