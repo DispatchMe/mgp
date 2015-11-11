@@ -85,6 +85,26 @@ var checkPathExist = function (path, errorMessage) {
   }
 };
 
+var getPackageName = function (dest) {
+  var packageJsPath = dest + '/package.js',
+    packageName = false,
+    lines = [];
+  checkPathExist(packageJsPath, 'package.js file not found.');
+
+  fs.ensureFileSync(packageJsPath);
+  packageJsContents = fs.readFileSync(packageJsPath, 'utf8');
+
+  lines = packageJsContents.split(/\n/g);
+  for (line in lines) {
+    if (/name/.test(lines[line]) && (lines[line].match(/:/g).length >= 2)) {
+      packageName = lines[line].split(/:(.+)?/)[1].trim().replace(/\"/g, '').replace(/\'/g, '').replace(/,/g, '');
+      break;
+    }
+  }
+
+  return packageName;
+}
+
 /**
  * Create a git ignore in the package directory for the packages.
  * @param packages
@@ -203,6 +223,9 @@ Packages.load = function (packages, callback) {
           shell.cp('-rf', src + '.', dest);
           checkPathExist(dest, 'Cannot copy package: ' + dest);
           shell.echo('Done...\n');
+
+          packageName = getPackageName(dest);
+          shell.echo('Meteor package name: ' + packageName);
         });
       });
     });
