@@ -12,7 +12,8 @@ if (!shell.which('git')) {
   shell.exit(1);
 }
 
-var PACKAGE_DIR = process.cwd() + '/packages';
+var ROOT_DIR = process.cwd(),
+  PACKAGE_DIR = ROOT_DIR + '/packages';
 
 function resolvePath(string) {
   if (string.substr(0, 1) === '~') {
@@ -85,13 +86,17 @@ var checkPathExist = function (path, errorMessage) {
   }
 };
 
+/**
+ * Get the Meteor name of the package being added
+ * @param dest -  path to the package
+ * @return string
+ */
 var getPackageName = function (dest) {
   var packageJsPath = dest + '/package.js',
     packageName = false,
     lines = [];
   checkPathExist(packageJsPath, 'package.js file not found.');
 
-  fs.ensureFileSync(packageJsPath);
   packageJsContents = fs.readFileSync(packageJsPath, 'utf8');
 
   lines = packageJsContents.split(/\n/g);
@@ -103,7 +108,26 @@ var getPackageName = function (dest) {
   }
 
   return packageName;
-}
+};
+
+/**
+ * Loop through the list of packages and add them to the Meteor app
+ * @param packagesToAddToMeteor - list of packages
+ */
+var addPackagesToMeteor = function(packagesToAddToMeteor) {
+  shell.cd(ROOT_DIR);
+  shell.echo("Adding the cloned packages to the Meteor app...");
+  for (index in packagesToAddToMeteor) {
+    package = packagesToAddToMeteor[index];
+
+    shell.echo("Adding package '" + package + "'...");
+    if (shell.exec('meteor add ' + package, {
+        silent: false
+      }).code !== 0) {
+      shell.echo("Error: Package '" + package + "' could not be added to the Meteor app.");
+    }
+  }
+};
 
 /**
  * Create a git ignore in the package directory for the packages.
@@ -170,6 +194,7 @@ Packages.load = function (packages, callback) {
   shell.rm('-fr', tempDir);
   shell.mkdir('-p', tempDir);
   shell.cd(tempDir);
+  var packagesToAddToMeteor = [];
 
   var resolvedPackages = getPackagesDict(packages);
 
@@ -224,8 +249,9 @@ Packages.load = function (packages, callback) {
           checkPathExist(dest, 'Cannot copy package: ' + dest);
           shell.echo('Done...\n');
 
-          packageName = getPackageName(dest);
-          shell.echo('Meteor package name: ' + packageName);
+          if (packageName = getPackageName(dest)) {
+            packagesToAddToMeteor.push(packageName);
+          }
         });
       });
     });
@@ -235,6 +261,11 @@ Packages.load = function (packages, callback) {
   // Remove the temp directory after the packages are copied.
   shell.cd(process.cwd());
   shell.rm('-fr', tempDir);
+
+  // add the packages to meteor
+  addPackagesToMeteor(packagesToAddToMeteor);
+
+  // finish up
   callback();
 };
 
