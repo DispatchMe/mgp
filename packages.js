@@ -184,10 +184,15 @@ Packages.link = function (packages, callback) {
 /**
  * Clones repositories and copy the packages.
  * @param packages The packages to load.
+ * @param addToGlobals whether or not to automatically add the packages with meteor add
  * @param {Function} callback
  */
-Packages.load = function (packages, callback) {
+Packages.load = function (packages, addToGlobals, callback) {
   shell.mkdir('-p', PACKAGE_DIR);
+
+  if (addToGlobals == undefined || addToGlobals == null) {
+    addToGlobals = false;
+  }
 
   // Create a temp directory to store the tarballs
   var tempDir = PACKAGE_DIR + '/temp';
@@ -249,8 +254,10 @@ Packages.load = function (packages, callback) {
           checkPathExist(dest, 'Cannot copy package: ' + dest);
           shell.echo('Done...\n');
 
-          if (packageName = getPackageName(dest)) {
-            packagesToAddToMeteor.push(packageName);
+          if (addToGlobals) {
+            if (packageName = getPackageName(dest)) {
+              packagesToAddToMeteor.push(packageName);
+            }
           }
         });
       });
@@ -263,7 +270,9 @@ Packages.load = function (packages, callback) {
   shell.rm('-fr', tempDir);
 
   // add the packages to meteor
-  addPackagesToMeteor(packagesToAddToMeteor);
+  if (addToGlobals) {
+    addPackagesToMeteor(packagesToAddToMeteor);
+  }
 
   // finish up
   callback();

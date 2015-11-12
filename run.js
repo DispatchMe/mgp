@@ -44,6 +44,6 @@ Packages.fromFile(packageDefinitionFile, function (error, packages) {
       packages = Packages.toHttps(packages);
     }
 
-    Packages.load(packages, done);
+    Packages.load(packages, argv.addToGlobals, done);
   }
 });
