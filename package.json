@@ -1,6 +1,6 @@
 {
-  "name": "mgp",
-  "description": "Meteor git packages (with update package versions)",
+  "name": "optune-mgp",
+  "description": "Meteor Git Packages (updated for project OpTuNE)",
   "version": "1.4.0",
   "bin": "./run.js",
   "scripts": {
