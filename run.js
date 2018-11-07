@@ -6,7 +6,7 @@ var Packages = require('./packages');
 
 // If link is passed we should symlink the local-packages.json
 // or the individual package that was passed.
-var link = _.contains(argv._, 'link');
+var link = _.includes(argv._, 'link');
 
 // If https is passed, convert any ssh urls to https
 // this is useful for using .netrc
