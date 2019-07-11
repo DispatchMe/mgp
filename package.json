@@ -21,7 +21,7 @@
   ],
   "dependencies": {
     "fs-extra": "^0.18.0",
-    "lodash": "^3.6.0",
+    "lodash": ">=4.17.14",
     "minimist": "^1.1.1",
     "shelljs": "^0.5.1"
   },
