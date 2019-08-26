@@ -3,7 +3,8 @@ var Packages = module.exports = {};
 var _ = require('lodash'),
   fs = require('fs-extra'),
   path = require('path'),
-  shell = require('shelljs');
+  shell = require('shelljs'),
+  ProgressBar = require('cli-progress-bar');
 
 // We rely on system git command and its configuration
 // In this way it is possible to pick up .netrc
@@ -155,18 +156,27 @@ Packages.load = function (packages, callback) {
 
   var repoDirIndex = 0;
 
+  var bar = new ProgressBar(),
+    totalPackages = _.keys(resolvedPackages).length,
+    currentPackage = 0,
+    allPackages = [];
+
   _.forOwn(resolvedPackages, function (repoPackages, gitRepo) {
+    bar.show(gitRepo, currentPackage++/totalPackages);
+    bar.pulse();
     var repoDir = tempDir + '/' + repoDirIndex;
 
     // Change to the temp directory before cloning the repo
     shell.cd(tempDir);
 
+    bar.pulse('clone... ');
     if (shell.exec('git clone ' + gitRepo + ' ' + repoDirIndex, {
         silent: true
       }).code !== 0) {
       shell.echo('Error: Git clone failed: ' + gitRepo);
       shell.exit(1);
     }
+    bar.pulse();
 
     // Change to the repo directory
     shell.cd(repoDir);
@@ -174,40 +184,45 @@ Packages.load = function (packages, callback) {
     repoDirIndex++;
 
     _.forOwn(repoPackages, function (branchPackages, branch) {
+      bar.pulse('checkout '+branch);
       if (shell.exec('git checkout -f ' + branch, {
-          silent: false
+          silent: true
         }).code !== 0) {
         shell.echo('Error: Git checkout branch failed for ' + gitRepo + '@' + version);
         shell.exit(1);
       }
       _.forOwn(branchPackages, function (storedPackages, version) {
+        bar.pulse();
         _.forOwn(storedPackages, function (src, packageName) {
+          bar.pulse('copy package '+packageName);
           if (shell.exec('git reset --hard ' + version, {
-              silent: false
+              silent: true
             }).code !== 0) {
             shell.echo('Error: Git checkout failed for ' + packageName + '@' + version);
             shell.exit(1);
           }
           packageName = packageName.replace(/:/g, '-');
-          shell.echo('\nProcessing ' + packageName + ' at ' + version);
+          bar.pulse();
+          allPackages.push(packageName + ' at ' + version + ' ('+branch.replace('-q ','')+')');
 
-          shell.echo('Cleaning up');
           var dest = PACKAGE_DIR + '/' + packageName;
           shell.rm('-rf', dest);
 
           src = repoDir + '/' + src + '/';
           checkPathExist(src, 'Cannot find package in repository: ' + src);
 
-          shell.echo('Copying package');
           // Adding the dot after `src` forces it to copy hidden files as well
           shell.cp('-rf', src + '.', dest);
           checkPathExist(dest, 'Cannot copy package: ' + dest);
-          shell.echo('Done...\n');
         });
       });
     });
 
   });
+
+  bar.hide();
+  console.log('Loaded ' + totalPackages + ' packages');
+  console.log(allPackages.join('\n'));
 
   // Remove the temp directory after the packages are copied.
   shell.cd(process.cwd());
